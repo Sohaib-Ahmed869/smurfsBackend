@@ -289,6 +289,24 @@ const markBookingAsUnpaid = async (req, res) => {
   }
 };
 
+const markBookingAsCompleted = async (req, res) => {
+  try {
+    const booking = await Booking.findByIdAndUpdate(
+      req.params.id,
+      { status: "Completed" },
+      {
+        new: true,
+      }
+    );
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found" });
+    }
+    res.status(200).json({ booking });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 //export
 module.exports = {
   createBooking,
@@ -299,4 +317,5 @@ module.exports = {
   cancelBooking,
   markBookingAsPaid,
   markBookingAsUnpaid,
+  markBookingAsCompleted,
 };
