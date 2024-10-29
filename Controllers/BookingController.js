@@ -4,6 +4,7 @@ const { createTransport } = require("nodemailer");
 
 const createBooking = async (req, res) => {
   try {
+    console.log("-------------------------------------------");
     const booking = new Booking(req.body);
     console.log(booking);
     //check if the ground is available
@@ -100,27 +101,40 @@ const createBooking = async (req, res) => {
     bookings.forEach((booking) => {
       //check if the booking date is the same
       if (booking.date.toDateString() === bookingDate.toDateString()) {
-        //check if the start time is between the start and end time of the booking
-        if (
-          (startHour >= parseInt(booking.startTime.split(":")[0]) &&
-            startHour < parseInt(booking.endTime.split(":")[0])) ||
-          (endHour > parseInt(booking.startTime.split(":")[0]) &&
-            endHour <= parseInt(booking.endTime.split(":")[0]))
-        ) {
+        // Parse start and end times of the booking
+        const bookingStartHour = parseInt(booking.startTime.split(":")[0]);
+        const bookingStartMinute = parseInt(booking.startTime.split(":")[1]);
+        const bookingEndHour = parseInt(booking.endTime.split(":")[0]);
+        const bookingEndMinute = parseInt(booking.endTime.split(":")[1]);
+      
+        // Check if the new booking's start time is within the existing booking's time range
+        const isStartTimeInRange =
+          (startHour > bookingStartHour || (startHour === bookingStartHour && startMinute >= bookingStartMinute)) &&
+          (startHour < bookingEndHour || (startHour === bookingEndHour && startMinute < bookingEndMinute));
+      
+        // Check if the new booking's end time is within the existing booking's time range
+        const isEndTimeInRange =
+          (endHour > bookingStartHour || (endHour === bookingStartHour && endMinute > bookingStartMinute)) &&
+          (endHour < bookingEndHour || (endHour === bookingEndHour && endMinute <= bookingEndMinute));
+      
+        // Check for overlap: start or end time is in range
+        if (isStartTimeInRange || isEndTimeInRange) {
+          console.log("Clashing booking", booking);
           isAvailable = false;
         }
       }
-      //check if start time falls between the start and end time of the booking
-      if (
-        startHour >= parseInt(booking.startTime.split(":")[0]) &&
-        startHour < parseInt(booking.endTime.split(":")[0])
-      ) {
-        isAvailable = false;
-      }
+      
+      // check if start time falls between the start and end time of the booking or not    why ???????
+      // if (
+      //   startHour >= parseInt(booking.startTime.split(":")[0]) &&
+      //   startHour < parseInt(booking.endTime.split(":")[0])
+      // ) {
+      //   isAvailable = false;
+      // }
     });
 
     if (!isAvailable) {
-      return res.status(400).json({ message: "Ground not available" });
+      return res.status(400).json({ message: "Booking Time Clashing" });
     }
 
     //check that it must not be in ground reserved_timings
@@ -132,14 +146,14 @@ const createBooking = async (req, res) => {
       startHour >= parseInt(reservedStartTime[0]) &&
       startHour < parseInt(reservedEndTime[0])
     ) {
-      return res.status(400).json({ message: "Ground not available" });
+      return res.status(400).json({ message: "Reserved Timeslot" });
     }
 
     if (
       endHour > parseInt(reservedStartTime[0]) &&
       endHour <= parseInt(reservedEndTime[0])
     ) {
-      return res.status(400).json({ message: "Ground not available" });
+      return res.status(400).json({ message: "Reserved Timeslot" });
     }
 
     booking.paid = false;
