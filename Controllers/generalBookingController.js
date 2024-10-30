@@ -58,7 +58,6 @@ const createBooking = async (req, res) => {
     const groundStartTime = groundTiming[0].split(":");
     const groundEndTime = groundTiming[1].split(":");
 
-
     //check if the start time is less than the ground start time
     if (
       startHour < parseInt(groundStartTime[0]) ||
@@ -95,7 +94,7 @@ const createBooking = async (req, res) => {
         .json({ message: "The booking must be in an increment of 30 minutes" });
     }
 
-    if(endMinute != 0 && endMinute != 30) {
+    if (endMinute != 0 && endMinute != 30) {
       return res
         .status(400)
         .json({ message: "The booking must be in an increment of 30 minutes" });
@@ -104,11 +103,13 @@ const createBooking = async (req, res) => {
     //check if the ground is available
     //get all bookings of the ground
     const bookings = await Booking.find({ ground: booking.ground });
+    console.log(bookings);
     //check if the ground is available
     let isAvailable = true;
     bookings.forEach((booking) => {
       //check if the booking date is the same
       if (booking.date.toDateString() === bookingDate.toDateString()) {
+        console.log(booking.date.toDateString() === bookingDate.toDateString());
         //check if the start time is between the start and end time of the booking
         if (
           (startHour >= parseInt(booking.startTime.split(":")[0]) &&
@@ -119,17 +120,11 @@ const createBooking = async (req, res) => {
           isAvailable = false;
         }
       }
-      //check if start time falls between the start and end time of the booking
-      if (
-        startHour >= parseInt(booking.startTime.split(":")[0]) &&
-        startHour < parseInt(booking.endTime.split(":")[0])
-      ) {
-        isAvailable = false;
-      }
+  
     });
 
     if (!isAvailable) {
-      return res.status(400).json({ message: "Ground not available" });
+      return res.status(400).json({ message: "Ground not available 1" });
     }
 
     //check that it must not be in ground reserved_timings
@@ -141,14 +136,14 @@ const createBooking = async (req, res) => {
       startHour >= parseInt(reservedStartTime[0]) &&
       startHour < parseInt(reservedEndTime[0])
     ) {
-      return res.status(400).json({ message: "Ground not available" });
+      return res.status(400).json({ message: "The ground is reserved for other purposes" });
     }
 
     if (
       endHour > parseInt(reservedStartTime[0]) &&
       endHour <= parseInt(reservedEndTime[0])
     ) {
-      return res.status(400).json({ message: "Ground not available" });
+      return res.status(400).json({ message: "Ground not available 3" });
     }
 
     booking.paid = false;
