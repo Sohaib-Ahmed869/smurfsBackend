@@ -12,5 +12,6 @@ router.put("/cancel/:id", BookingController.cancelBooking);
 router.put("/markAsPaid/:id", BookingController.markBookingAsPaid);
 router.put("/markAsUnpaid/:id", BookingController.markBookingAsUnpaid);
 router.put("/markAsCompleted/:id", BookingController.markBookingAsCompleted);
+router.put("/markAsRejected/:id", BookingController.markBookingAsRejected);
 
 module.exports = router;

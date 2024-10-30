@@ -106,24 +106,29 @@ const createBooking = async (req, res) => {
         const bookingStartMinute = parseInt(booking.startTime.split(":")[1]);
         const bookingEndHour = parseInt(booking.endTime.split(":")[0]);
         const bookingEndMinute = parseInt(booking.endTime.split(":")[1]);
-      
+
         // Check if the new booking's start time is within the existing booking's time range
         const isStartTimeInRange =
-          (startHour > bookingStartHour || (startHour === bookingStartHour && startMinute >= bookingStartMinute)) &&
-          (startHour < bookingEndHour || (startHour === bookingEndHour && startMinute < bookingEndMinute));
-      
+          (startHour > bookingStartHour ||
+            (startHour === bookingStartHour &&
+              startMinute >= bookingStartMinute)) &&
+          (startHour < bookingEndHour ||
+            (startHour === bookingEndHour && startMinute < bookingEndMinute));
+
         // Check if the new booking's end time is within the existing booking's time range
         const isEndTimeInRange =
-          (endHour > bookingStartHour || (endHour === bookingStartHour && endMinute > bookingStartMinute)) &&
-          (endHour < bookingEndHour || (endHour === bookingEndHour && endMinute <= bookingEndMinute));
-      
+          (endHour > bookingStartHour ||
+            (endHour === bookingStartHour && endMinute > bookingStartMinute)) &&
+          (endHour < bookingEndHour ||
+            (endHour === bookingEndHour && endMinute <= bookingEndMinute));
+
         // Check for overlap: start or end time is in range
         if (isStartTimeInRange || isEndTimeInRange) {
           console.log("Clashing booking", booking);
           isAvailable = false;
         }
       }
-      
+
       // check if start time falls between the start and end time of the booking or not    why ???????
       // if (
       //   startHour >= parseInt(booking.startTime.split(":")[0]) &&
@@ -321,6 +326,24 @@ const markBookingAsCompleted = async (req, res) => {
   }
 };
 
+const markBookingAsRejected = async (req, res) => {
+  try {
+    const booking = await Booking.findByIdAndUpdate(
+      req.params.id,
+      { status: "Rejected" },
+      {
+        new: true,
+      }
+    );
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found" });
+    }
+    res.status(200).json({ booking });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 //export
 module.exports = {
   createBooking,
@@ -332,4 +355,5 @@ module.exports = {
   markBookingAsPaid,
   markBookingAsUnpaid,
   markBookingAsCompleted,
+  markBookingAsRejected,
 };
